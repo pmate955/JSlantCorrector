@@ -2,13 +2,9 @@ import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.*;
 import static java.nio.file.FileVisitResult.*;
-import static java.nio.file.FileVisitOption.*;
-import java.util.*;
-
     public class Finder extends SimpleFileVisitor<Path> {
 
         private final PathMatcher matcher;
-        private int numMatches = 0;
         private File finded;
         Finder(String pattern) {
             matcher = FileSystems.getDefault()
@@ -20,8 +16,6 @@ import java.util.*;
         void find(Path file) {
             Path name = file.getFileName();
             if (name != null && matcher.matches(name)) {
-                numMatches++;
-                System.out.println(file);
                 finded = new File(file.toString());
             }
         }

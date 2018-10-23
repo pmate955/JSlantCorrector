@@ -1,9 +1,5 @@
 import java.awt.Color;
 import java.awt.Image;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
@@ -24,10 +20,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JSlider;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -40,19 +32,16 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class SlantCorrector extends JFrame{
 	
-	/**
-	 * 
-	 */
+	
 	private static final long serialVersionUID = 8979277578722035760L;
 	private BufferedImage input;
 	private int lastSlant = 0, lastPos = 0;
 	private File url;
-	private JButton openBtn, saveBtn, deleteBtn;
-	private JCheckBox rangeBox, denoiseBox;
+	private JButton openBtn, saveBtn, deleteBtn, denoiseBtn;
+	private JCheckBox rangeBox;
 	private JSlider slantSlider;
 	private JSlider posSlider, deleteRows;
 	private JLabel picLabel, infoLabel, slantLabel, posLabel;
-	private JSpinner deletePercent;
 	private Thread thrd;
 	private boolean runThread = false;
 	private int[] xDirs = {0,  1, 1, 1, 0,-1,-1,-1};
@@ -82,11 +71,8 @@ public class SlantCorrector extends JFrame{
 		this.add(posLabel);
 		openBtn = new JButton("Open");
 		openBtn.setBounds(10, 10, 100, 20);
-		openBtn.addActionListener(new ActionListener() {			
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				openClick();				
-			}
+		openBtn.addActionListener((l)->{
+			openClick();
 		});
 		this.add(openBtn);
 		deleteBtn = new JButton("Delete updated files");
@@ -115,81 +101,65 @@ public class SlantCorrector extends JFrame{
 		this.add(deleteBtn);
 		saveBtn = new JButton("Save");
 		saveBtn.setBounds(500, 10, 100, 20);
-		saveBtn.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent arg0){
-				if(input == null) return;
-				if(!runThread){
-					runThread = true;
-					thrd = new Thread(new Runnable() {
-				         @Override
-				         public void run() {
-				              	saveClick();
-				              	runThread = false;
-				              	infoLabel.setText("Done");
-				              	slantSlider.setEnabled(true);
-								posSlider.setEnabled(true);
-				         }
-					});					
-					slantSlider.setEnabled(false);
-					posSlider.setEnabled(false);
-					thrd.start();
-				}
+		saveBtn.addActionListener((e)->{
+			if(input == null) return;
+			if(!runThread){
+				runThread = true;
+				thrd = new Thread(new Runnable() {
+					@Override
+					public void run() {
+						saveClick();
+						runThread = false;
+						infoLabel.setText("Done");
+						slantSlider.setEnabled(true);
+						posSlider.setEnabled(true);
+					}
+				});					
+				slantSlider.setEnabled(false);
+				posSlider.setEnabled(false);
+				thrd.start();
 			}
 		});
 		this.add(saveBtn);
 		rangeBox = new JCheckBox("Bigger range");
 		rangeBox.setBounds(500,30,100,20);	
-		rangeBox.addItemListener(new ItemListener() {
-			
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if(rangeBox.isSelected()){
-					slantSlider.setMaximum(1500);
-					slantSlider.setMinimum(-1500);
-					posSlider.setMaximum(2000);
-					posSlider.setMinimum(-2000);
-				} else {
-					slantSlider.setMaximum(1000);
-					slantSlider.setMinimum(-1000);
-					posSlider.setMaximum(800);
-					posSlider.setMinimum(-800);
-				}				
-			}
+		rangeBox.addItemListener((e)-> {
+			if(rangeBox.isSelected()){
+				slantSlider.setMaximum(1500);
+				slantSlider.setMinimum(-1500);
+				posSlider.setMaximum(2000);
+				posSlider.setMinimum(-2000);
+			} else {
+				slantSlider.setMaximum(1000);
+				slantSlider.setMinimum(-1000);
+				posSlider.setMaximum(800);
+				posSlider.setMinimum(-800);
+			}		
 		});
 		rangeBox.setRolloverEnabled(false);
 		this.add(rangeBox);
-		denoiseBox = new JCheckBox("Denoise");
-		denoiseBox.setBounds(600, 30, 80, 20);
-		denoiseBox.addItemListener(new ItemListener() {
-			
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if(input == null) return;
-				if(denoiseBox.isSelected()) {
-					if(!runThread){
-						runThread = true;
-						thrd = new Thread(new Runnable() {
-					         @Override
-					         public void run() {
-					              	denoise();
-					            	//deleteRow();
-					        	 	picLabel.setIcon(new ImageIcon(resize()));
-							        repaint();
-					              	runThread = false;
-					              	infoLabel.setText("Done");
-					         }
-						});
-						infoLabel.setText("Working...");
-						thrd.start();
-					
+		denoiseBtn = new JButton("Denoise");
+		denoiseBtn.setBounds(600, 30, 80, 20);
+		denoiseBtn.addActionListener((e)->{
+			if(input == null) return;
+			if(!runThread){
+				runThread = true;
+				thrd = new Thread(new Runnable() {
+					@Override
+					public void run() {
+						denoise();
+						//deleteRow();
+						picLabel.setIcon(new ImageIcon(resize()));
+						repaint();
+						runThread = false;
+						infoLabel.setText("Done");
 					}
-				} else {
-					
-				}
-				
+				});
+				infoLabel.setText("Working...");
+				thrd.start();
 			}
 		});
-		this.add(denoiseBox);
+		this.add(denoiseBtn);
 		deleteRows = new JSlider();
 		deleteRows.setMinimum(1);
 		deleteRows.setMaximum(100);
@@ -223,54 +193,48 @@ public class SlantCorrector extends JFrame{
 		slantSlider.setMaximum(1000);
 		slantSlider.setMinimum(-1000);
 		slantSlider.setValue(0);
-		slantSlider.addChangeListener(new ChangeListener() {					//Slant slider	
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				if(input == null) return;
-				if(!runThread){
-					runThread = true;
-					thrd = new Thread(new Runnable() {
-				         @Override
-				         public void run() {
-				              	slantSliderChanged();
-				              	runThread = false;
-				              	infoLabel.setText("Done");
-				         }
-					});
-					infoLabel.setText("Working...");
-					thrd.start();
-				}
+		slantSlider.addChangeListener((e)-> {
+			if(input == null) return;
+			if(!runThread){
+				runThread = true;
+				thrd = new Thread(new Runnable() {
+					@Override
+					public void run() {
+						slantSliderChanged();
+						runThread = false;
+						infoLabel.setText("Done");
+					}
+				});
+				infoLabel.setText("Working...");
+				thrd.start();
 			}
-		 });
+
+		});
 		slantSlider.setBounds(120, 10, 370, 20);
 		this.add(slantSlider);
 		posSlider = new JSlider();
 		posSlider.setMaximum(800);
 		posSlider.setMinimum(-800);
 		posSlider.setValue(0);
-		posSlider.addChangeListener(new ChangeListener() {						//Position Slider
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				//slantSliderChanged();	
-				if(input == null) return;
-				if(!runThread){
-					runThread = true;
-					thrd = new Thread(new Runnable() {
-				         @Override
-				         public void run() {
-				              	posSliderChanged();
-				              	runThread = false;
-				              	infoLabel.setText("Done");
-				         }
-					});
-					infoLabel.setText("Working...");
-					thrd.start();
-				}
+		posSlider.addChangeListener((e)-> {
+			if(input == null) return;
+			if(!runThread){
+				runThread = true;
+				thrd = new Thread(new Runnable() {
+					@Override
+					public void run() {
+						posSliderChanged();
+						runThread = false;
+						infoLabel.setText("Done");
+					}
+				});
+				infoLabel.setText("Working...");
+				thrd.start();
 			}
-		 });
+
+		});
 		posSlider.setBounds(610,10,400,20);
 		this.add(posSlider);
-		//openBtn.setText("Open");
 	}
 	
 	private void openClick(){														//Image open method
@@ -312,7 +276,6 @@ public class SlantCorrector extends JFrame{
 				slantSlider.setValue(0);
 				posSlider.setValue(0);
 				rangeBox.setSelected(false);
-				denoiseBox.setSelected(false);
 				repaint();
 				
 			} catch (IOException e){
