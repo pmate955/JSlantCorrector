@@ -49,7 +49,7 @@ public class SlantCorrector extends JFrame{
 	
 	public SlantCorrector(){													//Constructor
 		this.setLayout(null);
-		this.setTitle("HA8MZ WeFax slant corrector v1.1 - Please open image!");
+		this.setTitle("HA8MZ WeFax slant corrector v1.2 - Please open image!");
 		this.setSize(1024, 768);
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setResizable(false);
@@ -200,6 +200,7 @@ public class SlantCorrector extends JFrame{
 				thrd = new Thread(new Runnable() {
 					@Override
 					public void run() {
+						slantLabel.setText("Slant: " + slantSlider.getValue());
 						slantSliderChanged();
 						runThread = false;
 						infoLabel.setText("Done");
@@ -223,6 +224,7 @@ public class SlantCorrector extends JFrame{
 				thrd = new Thread(new Runnable() {
 					@Override
 					public void run() {
+						posLabel.setText("Position: " + posSlider.getValue());
 						posSliderChanged();
 						runThread = false;
 						infoLabel.setText("Done");
